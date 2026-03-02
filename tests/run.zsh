@@ -1,6 +1,6 @@
 #!/usr/bin/zsh
 # ── zsh-ai-commands test runner ──────────────────────────────────
-# Usage: zsh tests/run.zsh [--live]
+# Usage: zsh tests/run.zsh
 # ─────────────────────────────────────────────────────────────────
 
 setopt localoptions extendedglob
@@ -61,12 +61,6 @@ source "$_test_dir/test_parse.zsh"
 echo
 echo "=== Provider tests ==="
 source "$_test_dir/test_providers.zsh"
-
-if [[ "$1" == "--live" ]]; then
-  echo
-  echo "=== Live tests ==="
-  source "$_test_dir/test_live.zsh"
-fi
 
 # ── Summary ──────────────────────────────────────────────────────
 

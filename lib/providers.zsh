@@ -63,6 +63,7 @@ _zaic_build_request_openai() {
   local service_tier="auto"
   [[ "$ZSH_AI_COMMANDS_OPENAI_PRIORITY" == true ]] && service_tier="priority"
 
+  # reasoning_effort: "low",
   _zaic_body=$(
     jq -n \
       --arg model "$ZSH_AI_COMMANDS_MODEL" \
@@ -76,7 +77,6 @@ _zaic_build_request_openai() {
           { role: "user",   content: $user }
         ],
         max_completion_tokens: 512,
-        reasoning_effort: "low",
         service_tier: $tier
       }'
   ) || return 1

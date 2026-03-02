@@ -70,16 +70,12 @@ case "$ZSH_AI_COMMANDS_PROVIDER" in
     ;;
 esac
 
-# Model defaults (ZSH_AI_COMMANDS_LLM_NAME honored as fallback)
+# Model defaults
 if (( ! ${+ZSH_AI_COMMANDS_MODEL} )); then
-  if (( ${+ZSH_AI_COMMANDS_LLM_NAME} )); then
-    typeset -g ZSH_AI_COMMANDS_MODEL="$ZSH_AI_COMMANDS_LLM_NAME"
-  else
-    case "$ZSH_AI_COMMANDS_PROVIDER" in
-      gemini) typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
-      openai) typeset -g ZSH_AI_COMMANDS_MODEL='gpt-5-mini' ;;
-    esac
-  fi
+  case "$ZSH_AI_COMMANDS_PROVIDER" in
+    gemini) typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
+    openai) typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4.1-mini' ;;
+  esac
 fi
 
 # OpenAI endpoint default

@@ -45,7 +45,7 @@ export ZSH_AI_COMMANDS_MODEL="llama3"
 | Variable | Default | Purpose |
 |---|---|---|
 | `ZSH_AI_COMMANDS_PROVIDER` | Auto-detected from which key is set | `gemini` or `openai` |
-| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-4o-mini` | Model identifier |
+| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-4.1-mini` | Model identifier |
 | `ZSH_AI_COMMANDS_GEMINI_API_KEY` | — | Gemini API key |
 | `ZSH_AI_COMMANDS_OPENAI_API_KEY` | — | OpenAI API key |
 | `ZSH_AI_COMMANDS_OPENAI_ENDPOINT` | `https://api.openai.com/v1/chat/completions` | Custom endpoint |
@@ -65,7 +65,6 @@ export ZSH_AI_COMMANDS_MODEL="llama3"
 
 ```sh
 zsh tests/run.zsh          # unit + fixture tests
-zsh tests/run.zsh --live   # also run live API smoke tests (needs keys set)
 ```
 
 ---

@@ -7,6 +7,7 @@ Supports Gemini (default) and OpenAI-compatible APIs (OpenAI, Ollama, LMStudio, 
 ## Requirements
 
 * [curl](https://curl.se/)
+* [jq](https://github.com/jqlang/jq)
 * either a locally running LLM or valid api keys
 
 ## Installation

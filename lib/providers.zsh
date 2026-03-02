@@ -59,19 +59,25 @@ _zaic_build_request_openai() {
     "Content-Type: application/json"
     "Authorization: Bearer $ZSH_AI_COMMANDS_OPENAI_API_KEY"
   )
+
+  local service_tier="auto"
+  [[ "$ZSH_AI_COMMANDS_OPENAI_PRIORITY" == true ]] && service_tier="priority"
+
   _zaic_body=$(
     jq -n \
       --arg model "$ZSH_AI_COMMANDS_MODEL" \
       --arg sys   "$sys_prompt" \
       --arg user  "$user_query" \
+      --arg tier  "$service_tier" \
       '{
         model: $model,
         messages: [
           { role: "system", content: $sys },
           { role: "user",   content: $user }
         ],
-        max_tokens: 512,
-        temperature: 0.2
+        max_completion_tokens: 512,
+        reasoning_effort: "low",
+        service_tier: $tier
       }'
   ) || return 1
 }

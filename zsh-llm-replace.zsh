@@ -77,7 +77,7 @@ if (( ! ${+ZSH_AI_COMMANDS_MODEL} )); then
   else
     case "$ZSH_AI_COMMANDS_PROVIDER" in
       gemini) typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
-      openai) typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4o-mini' ;;
+      openai) typeset -g ZSH_AI_COMMANDS_MODEL='gpt-5-mini' ;;
     esac
   fi
 fi
@@ -85,6 +85,9 @@ fi
 # OpenAI endpoint default
 (( ! ${+ZSH_AI_COMMANDS_OPENAI_ENDPOINT} )) && \
   typeset -g ZSH_AI_COMMANDS_OPENAI_ENDPOINT='https://api.openai.com/v1/chat/completions'
+
+# OpenAI priority processing (lower, more consistent latency; 2x cost)
+(( ! ${+ZSH_AI_COMMANDS_OPENAI_PRIORITY} )) && typeset -g ZSH_AI_COMMANDS_OPENAI_PRIORITY=true
 
 # Other defaults
 (( ! ${+ZSH_AI_COMMANDS_HOTKEY} )) && typeset -g ZSH_AI_COMMANDS_HOTKEY='^o'
@@ -197,6 +200,11 @@ PROMPT
 
   local key
   read -k 1 key
+  # Drain remaining bytes from escape sequences (e.g., arrow keys send \e[A)
+  if [[ "$key" == $'\e' ]]; then
+    local _discard
+    while read -t 0.01 -k 1 _discard 2>/dev/null; do :; done
+  fi
 
   region_highlight=()
   if [[ "$key" == $'\n' || "$key" == $'\r' ]]; then

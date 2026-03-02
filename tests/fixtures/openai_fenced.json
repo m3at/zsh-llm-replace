@@ -1,0 +1,14 @@
+{
+  "id": "chatcmpl-test456",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```bash\nls -la\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          { "text": "echo hello" },
+          { "text": "echo world" }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP"
+    }
+  ]
+}

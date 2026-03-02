@@ -1,0 +1,13 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          { "text": "ls -la" }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP"
+    }
+  ]
+}

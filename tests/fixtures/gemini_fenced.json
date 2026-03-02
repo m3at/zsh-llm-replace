@@ -1,0 +1,13 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          { "text": "```bash\nls -la\n```" }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP"
+    }
+  ]
+}

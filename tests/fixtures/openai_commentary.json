@@ -1,0 +1,14 @@
+{
+  "id": "chatcmpl-test789",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Sure! Here's the command:\n\n```bash\ndu -sh */ | sort -rh\n```\n\nThis shows disk usage sorted by size."
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

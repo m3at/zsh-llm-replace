@@ -2,7 +2,12 @@
 
 Zsh plugin to integrate LLMs into the shell for quick command generation.
 
-Supports Gemini (default) and OpenAI-compatible APIs (OpenAI, Ollama, LMStudio, etc.).
+
+https://github.com/user-attachments/assets/fd6408ed-edf2-407a-812b-2e1fac25698c
+
+_Demo with gpt-4.1-mini's priority tier_
+
+Supports Gemini (default with free credits) and OpenAI-compatible APIs (OpenAI, Ollama, LMStudio, etc.).
 
 ## Requirements
 

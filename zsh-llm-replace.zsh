@@ -144,7 +144,7 @@ PROMPT
 
   # ── API call with interruption handling ─────────────────────────
   local resp_file
-  resp_file="$(mktemp /tmp/zshllmresp.XXXXXX.json)" || {
+  resp_file="$(mktemp -t zshllmresp)" || {
     BUFFER="$original_buffer"; zle reset-prompt; return 1
   }
 

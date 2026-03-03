@@ -24,7 +24,7 @@ zplug "m3at/zsh-llm-replace"
 
 ## Configuration
 
-### Gemini (default)
+### Gemini
 
 ```sh
 export ZSH_AI_COMMANDS_GEMINI_API_KEY="your-key-here"
@@ -42,7 +42,7 @@ export ZSH_AI_COMMANDS_OPENAI_API_KEY="your-key-here"
 export ZSH_AI_COMMANDS_PROVIDER=openai
 export ZSH_AI_COMMANDS_OPENAI_API_KEY="your-key"
 export ZSH_AI_COMMANDS_OPENAI_ENDPOINT="http://localhost:11434/v1/chat/completions"
-export ZSH_AI_COMMANDS_MODEL="llama3"
+export ZSH_AI_COMMANDS_MODEL="LiquidAI/LFM2.5-1.2B-Thinking"
 ```
 
 ### All environment variables
@@ -62,9 +62,8 @@ export ZSH_AI_COMMANDS_MODEL="llama3"
 ## Usage
 
 1. Type a natural language description in your terminal
-2. Press Ctrl+O (or your configured hotkey)
-3. Review the generated command in fzf
-4. Select "Use command" or abort
+2. Press Ctrl+o (or your configured hotkey)
+3. Accept (enter) or discard (any other key) the generated command
 
 ## Testing
 

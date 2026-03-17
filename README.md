@@ -68,7 +68,25 @@ export ZSH_AI_COMMANDS_MODEL="LiquidAI/LFM2.5-1.2B-Thinking"
 ## Testing
 
 ```sh
-zsh tests/run.zsh          # unit + fixture tests
+# unit + fixture tests
+zsh tests/run.zsh          
+
+# mini cost/latency bench mark
+zsh bench.zsh
+```
+
+Test results with `reasoning: { effort: "low" }` and 2x priority-tier cost, as of 2026/03/18:
+```
+Model                        Latency  Tokens    Cost x1000
+──────────────────────────  ────────  ──────  ────────────
+gemini-3-flash-preview          3.7s      15        $0.186
+gemini-2.5-flash                2.6s      16        $0.124
+gpt-4o                          0.6s      12        $2.773
+gpt-4.1-mini                    0.8s      38        $0.598
+gpt-5-mini                      3.7s     464        $3.590
+gpt-5.4-mini                    1.4s      29        $0.674
+gpt-5.4-nano                    1.3s      30        $0.184
+
 ```
 
 ---

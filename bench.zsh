@@ -6,8 +6,8 @@ set -uo pipefail
 
 # ── Pricing (USD per 1M tokens) ─────────────────────────────────
 typeset -A COST_IN COST_OUT
-COST_IN=(  gemini-3-flash-preview 0.50  gemini-2.5-flash 0.30  gpt-4o 4.25   gpt-4.1-mini 0.70  gpt-5-mini 0.45 )
-COST_OUT=( gemini-3-flash-preview 3.00  gemini-2.5-flash 2.50  gpt-4o 17.00  gpt-4.1-mini 2.80  gpt-5-mini 3.6 )
+COST_IN=(  gemini-3-flash-preview 0.50  gemini-2.5-flash 0.30  gpt-4o 4.25   gpt-4.1-mini 0.70  gpt-5-mini 0.45  gpt-5.4-mini 0.75  gpt-5.4-nano 0.2 )
+COST_OUT=( gemini-3-flash-preview 3.00  gemini-2.5-flash 2.50  gpt-4o 17.00  gpt-4.1-mini 2.80  gpt-5-mini 3.6   gpt-5.4-mini 4.5   gpt-5.4-nano 1.25 )
 
 OPENAI_PRIORITY="${ZSH_AI_COMMANDS_OPENAI_PRIORITY:-true}"
 
@@ -150,17 +150,17 @@ bench() {
 
   local counted=$(( n - errors ))
   if (( counted > 0 )); then
-    R_TIME[$label]=$(awk  "BEGIN { printf \"%.2f\", $sum_t    / $counted }")
+    R_TIME[$label]=$(awk  "BEGIN { printf \"%.1f\", $sum_t    / $counted }")
     R_TOK[$label]=$(awk   "BEGIN { printf \"%.0f\", $sum_out  / $counted }")
     R_COST[$label]=$(awk  "BEGIN { printf \"%.6f\", $sum_cost / $counted }")
   else
-    R_TIME[$label]="-.--"
+    R_TIME[$label]="-.-"
     R_TOK[$label]="-"
     R_COST[$label]="-.------"
   fi
 
   printf '  ─────────────────────────────────────────────────────────\n'
-  printf '  \e[1mAVG:  %5ss  %4s tok  $%s\e[0m\n' \
+  printf '  \e[1mAVG:  %6ss  %5s tok  $%s\e[0m\n' \
     "${R_TIME[$label]}" "${R_TOK[$label]}" "${R_COST[$label]}"
 }
 
@@ -185,18 +185,25 @@ bench "gemini-2.5-flash"        gemini  gemini-2.5-flash
 bench "gpt-4o"                  openai  gpt-4o
 bench "gpt-4.1-mini"            openai  gpt-4.1-mini
 bench "gpt-5-mini"              openai  gpt-5-mini
+bench "gpt-5.4-mini"            openai  gpt-5.4-mini
+bench "gpt-5.4-nano"            openai  gpt-5.4-nano
 
 # ── Summary table ────────────────────────────────────────────────
 printf '\n\e[1m'
 echo '═══ Summary ══════════════════════════════════════════════════'
-printf '  %-26s  %8s  %6s  %12s\n' "Model" "Latency" "Tokens" "Cost"
+printf '  %-26s  %8s  %6s  %12s\n' "Model" "Latency" "Tokens" "Cost x1000"
 printf '  %-26s  %8s  %6s  %12s\n' "──────────────────────────" "────────" "──────" "────────────"
 for label in "${LABELS[@]}"; do
-  printf '  %-26s  %7ss  %5s   $%s\n' \
-    "$label" "${R_TIME[$label]}" "${R_TOK[$label]}" "${R_COST[$label]}"
+  if [[ ${R_COST[$label]} == '-.------' ]]; then
+    scaled_cost='-.---'
+  else
+    scaled_cost=$(awk "BEGIN { printf \"%.3f\", ${R_COST[$label]} * 1000 }")
+  fi
+  printf '  %-26s  %7ss  %6s  %12s\n' \
+    "$label" "${R_TIME[$label]}" "${R_TOK[$label]}" '$'"$scaled_cost"
 done
 printf '\e[0m\n'
 
-echo "Costs are per-request averages based on token counts."
+echo "Summary costs are per-request averages based on token counts, displayed x1000."
 [[ $OPENAI_PRIORITY == true ]] && echo "OpenAI costs include 2x priority-tier multiplier."
 echo

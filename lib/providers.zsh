@@ -63,7 +63,8 @@ _zaic_build_request_openai() {
   local service_tier="auto"
   [[ "$ZSH_AI_COMMANDS_OPENAI_PRIORITY" == true ]] && service_tier="priority"
 
-  # reasoning_effort: "low",
+  # Reasoning:
+  # Supported values are model-dependent and can include: none, minimal, low, medium, high, and xhigh
   _zaic_body=$(
     jq -n \
       --arg model "$ZSH_AI_COMMANDS_MODEL" \
@@ -72,6 +73,7 @@ _zaic_build_request_openai() {
       --arg tier  "$service_tier" \
       '{
         model: $model,
+        reasoning: { effort: "low" },
         messages: [
           { role: "system", content: $sys },
           { role: "user",   content: $user }

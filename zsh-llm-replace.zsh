@@ -80,7 +80,7 @@ fi
 
 # OpenAI endpoint default
 (( ! ${+ZSH_AI_COMMANDS_OPENAI_ENDPOINT} )) && \
-  typeset -g ZSH_AI_COMMANDS_OPENAI_ENDPOINT='https://api.openai.com/v1/chat/completions'
+  typeset -g ZSH_AI_COMMANDS_OPENAI_ENDPOINT='https://api.openai.com/v1/responses'
 
 # OpenAI priority processing (lower, more consistent latency; 2x cost)
 (( ! ${+ZSH_AI_COMMANDS_OPENAI_PRIORITY} )) && typeset -g ZSH_AI_COMMANDS_OPENAI_PRIORITY=true

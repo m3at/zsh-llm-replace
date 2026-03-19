@@ -65,20 +65,21 @@ _zaic_build_request_openai() {
 
   # Reasoning:
   # Supported values are model-dependent and can include: none, minimal, low, medium, high, and xhigh
+  # https://developers.openai.com/api/reference/resources/responses/methods/create
+  local reasoning_level="low"
   _zaic_body=$(
     jq -n \
       --arg model "$ZSH_AI_COMMANDS_MODEL" \
+      --arg reasoning_effort "$reasoning_level" \
       --arg sys   "$sys_prompt" \
       --arg user  "$user_query" \
       --arg tier  "$service_tier" \
       '{
         model: $model,
-        reasoning: { effort: "low" },
-        messages: [
-          { role: "system", content: $sys },
-          { role: "user",   content: $user }
-        ],
-        max_completion_tokens: 512,
+        reasoning: { effort: $reasoning_effort },
+        instructions: $sys,
+        input: $user,
+        max_output_tokens: 512,
         service_tier: $tier
       }'
   ) || return 1
@@ -88,12 +89,12 @@ _zaic_parse_response_openai() {
   local resp_file="$1"
 
   local raw
-  raw="$(jq -r '.choices[0].message.content // empty' "$resp_file" 2>/dev/null)"
+  raw="$(jq -r '.output[1].content[0].text // empty' "$resp_file" 2>/dev/null)"
 
   if [[ -z "$raw" ]]; then
     local err
     err="$(jq -r '
-      .error.message // "unknown error (set ZSH_AI_COMMANDS_DEBUG=true)"
+      .error // "unknown error (set ZSH_AI_COMMANDS_DEBUG=true)"
     ' "$resp_file" 2>/dev/null)"
     echo "OpenAI API error: $err" >&2
     return 1

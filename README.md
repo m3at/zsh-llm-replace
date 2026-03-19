@@ -81,11 +81,11 @@ Model                        Latency  Tokens    Cost x1000
 ──────────────────────────  ────────  ──────  ────────────
 gemini-3-flash-preview          3.7s      15        $0.186
 gemini-2.5-flash                2.6s      16        $0.124
-gpt-4o                          0.6s      12        $2.773
-gpt-4.1-mini                    0.8s      38        $0.598
-gpt-5-mini                      3.7s     464        $3.590
-gpt-5.4-mini                    1.4s      29        $0.674
-gpt-5.4-nano                    1.3s      30        $0.184
+gpt-4o                          0.7s      15        $2.848
+gpt-4.1-mini                    0.7s      27        $0.536
+gpt-5-mini                      3.3s     482        $3.717
+gpt-5.4-mini                    1.1s      28        $0.669
+gpt-5.4-nano                    0.9s      32        $0.190
 
 ```
 

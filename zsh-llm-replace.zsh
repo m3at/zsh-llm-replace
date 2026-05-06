@@ -38,6 +38,14 @@ source "${0:A:h}/lib/providers.zsh"
 
 # ── Config resolution ─────────────────────────────────────────────
 
+# Model-prefix shorthand: `or:<slug>` forces provider=openrouter and strips
+# the prefix. Lets users switch provider with just one env var, e.g.
+#   ZSH_AI_COMMANDS_MODEL=or:openai/gpt-oss-120b:nitro
+if [[ "${ZSH_AI_COMMANDS_MODEL:-}" == or:* ]]; then
+  typeset -g ZSH_AI_COMMANDS_PROVIDER=openrouter
+  typeset -g ZSH_AI_COMMANDS_MODEL="${ZSH_AI_COMMANDS_MODEL#or:}"
+fi
+
 # Provider auto-detection: explicit > inferred from available keys
 if (( ${+ZSH_AI_COMMANDS_PROVIDER} )); then
   : # user explicitly chose
@@ -45,8 +53,10 @@ elif (( ${+ZSH_AI_COMMANDS_GEMINI_API_KEY} )); then
   typeset -g ZSH_AI_COMMANDS_PROVIDER=gemini
 elif (( ${+ZSH_AI_COMMANDS_OPENAI_API_KEY} )); then
   typeset -g ZSH_AI_COMMANDS_PROVIDER=openai
+elif (( ${+ZSH_AI_COMMANDS_OPENROUTER_API_KEY} )); then
+  typeset -g ZSH_AI_COMMANDS_PROVIDER=openrouter
 else
-  echo "zsh-ai-commands::Error::No API key set. Set ZSH_AI_COMMANDS_GEMINI_API_KEY or ZSH_AI_COMMANDS_OPENAI_API_KEY"
+  echo "zsh-ai-commands::Error::No API key set. Set ZSH_AI_COMMANDS_GEMINI_API_KEY, ZSH_AI_COMMANDS_OPENAI_API_KEY, or ZSH_AI_COMMANDS_OPENROUTER_API_KEY"
   return
 fi
 
@@ -64,8 +74,14 @@ case "$ZSH_AI_COMMANDS_PROVIDER" in
       return
     fi
     ;;
+  openrouter)
+    if (( ! ${+ZSH_AI_COMMANDS_OPENROUTER_API_KEY} )); then
+      echo "zsh-ai-commands::Error::provider=openrouter but ZSH_AI_COMMANDS_OPENROUTER_API_KEY not set"
+      return
+    fi
+    ;;
   *)
-    echo "zsh-ai-commands::Error::Unknown provider '$ZSH_AI_COMMANDS_PROVIDER' (use gemini or openai)"
+    echo "zsh-ai-commands::Error::Unknown provider '$ZSH_AI_COMMANDS_PROVIDER' (use gemini, openai, or openrouter)"
     return
     ;;
 esac
@@ -73,8 +89,9 @@ esac
 # Model defaults
 if (( ! ${+ZSH_AI_COMMANDS_MODEL} )); then
   case "$ZSH_AI_COMMANDS_PROVIDER" in
-    gemini) typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
-    openai) typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4.1-mini' ;;
+    gemini)     typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
+    openai)     typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4.1-mini' ;;
+    openrouter) typeset -g ZSH_AI_COMMANDS_MODEL='openai/gpt-oss-120b:nitro' ;;
   esac
 fi
 

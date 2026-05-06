@@ -1,14 +1,21 @@
 {
-  "id": "chatcmpl-test123",
-  "object": "chat.completion",
-  "choices": [
+  "id": "resp_test123",
+  "object": "response",
+  "output": [
     {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "ls -la"
-      },
-      "finish_reason": "stop"
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "text": "ls -la"
+        }
+      ]
     }
-  ]
+  ],
+  "usage": { "input_tokens": 100, "output_tokens": 5, "total_tokens": 105 }
 }

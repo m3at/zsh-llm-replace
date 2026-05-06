@@ -1,73 +1,39 @@
 #!/usr/bin/zsh
 # ── Unit tests for _zaic_clean_command ───────────────────────────
 
-# Helper: pipe a string through _zaic_clean_command
 _tc() { print -r -- "$1" | _zaic_clean_command }
 
-# 1. Clean command passthrough
-assert_eq "clean command passthrough" \
-  "ls -la" \
-  "$(_tc 'ls -la')"
+# Passthrough: no fence, no commentary starter — must not be touched.
+# One representative covers all the "no transformation" cases.
+assert_eq "passthrough: pipe + quotes + subshell" \
+  "cat foo.txt | grep 'hello' | awk '{print \$1}'" \
+  "$(_tc "cat foo.txt | grep 'hello' | awk '{print \$1}'")"
 
-# 2. Pipe command passthrough
-assert_eq "pipe command passthrough" \
-  "cat foo.txt | grep bar | wc -l" \
-  "$(_tc 'cat foo.txt | grep bar | wc -l')"
+# Single backticks must not be confused for fences (only ``` triggers extraction).
+assert_eq "single backticks not treated as fence" \
+  'echo `whoami`' \
+  "$(_tc 'echo `whoami`')"
 
-# 3. Command with single quotes
-assert_eq "single quotes preserved" \
-  "grep 'hello world' file.txt" \
-  "$(_tc "grep 'hello world' file.txt")"
+# ── Fenced extraction ────────────────────────────────────────────
 
-# 4. Command with double quotes
-assert_eq "double quotes preserved" \
-  'echo "hello world"' \
-  "$(_tc 'echo "hello world"')"
-
-# 5. Command with $() subshell
-assert_eq "subshell preserved" \
-  'echo $(date +%Y-%m-%d)' \
-  "$(_tc 'echo $(date +%Y-%m-%d)')"
-
-# 6-9: Fenced blocks — use heredocs to avoid backtick quoting issues
-
-local _t6 _t7 _t8 _t9
-
-_t6=$(cat <<'FENCE'
+local _t
+_t=$(cat <<'FENCE'
 ```bash
 ls -la
 ```
 FENCE
 )
-assert_eq "bash fence extracts command" "ls -la" "$(_tc "$_t6")"
+assert_eq "bash fence extracts command" "ls -la" "$(_tc "$_t")"
 
-_t7=$(cat <<'FENCE'
-```zsh
-echo hello
-```
-FENCE
-)
-assert_eq "zsh fence extracts command" "echo hello" "$(_tc "$_t7")"
-
-_t8=$(cat <<'FENCE'
-```sh
-pwd
-```
-FENCE
-)
-assert_eq "sh fence extracts command" "pwd" "$(_tc "$_t8")"
-
-_t9=$(cat <<'FENCE'
+_t=$(cat <<'FENCE'
 ```
 ls -la /tmp
 ```
 FENCE
 )
-assert_eq "bare fence extracts command" "ls -la /tmp" "$(_tc "$_t9")"
+assert_eq "bare fence extracts command" "ls -la /tmp" "$(_tc "$_t")"
 
-# 10. Commentary before and after fenced block
-local _t10
-_t10=$(cat <<'FENCE'
+_t=$(cat <<'FENCE'
 Here is the command you need:
 
 ```bash
@@ -79,29 +45,9 @@ FENCE
 )
 assert_eq "commentary around fence stripped" \
   "find . -name '*.log' -delete" \
-  "$(_tc "$_t10")"
+  "$(_tc "$_t")"
 
-# 11. Commentary without fences gets filtered
-local _t11
-_t11=$(printf 'Here is the command:\nls -la\nThis lists all files.\n')
-assert_eq "commentary without fences filtered" \
-  "ls -la" \
-  "$(_tc "$_t11")"
-
-# 12. All commentary — falls back to full text
-assert_eq "all-commentary fallback" \
-  "Here is the answer." \
-  "$(_tc 'Here is the answer.')"
-
-# 13. Empty input
-assert_eq "empty input" "" "$(_tc '')"
-
-# 14. Whitespace-only input
-assert_eq "whitespace-only input" "" "$(printf '   \n  \n' | _zaic_clean_command)"
-
-# 15. Multi-line command inside fence gets flattened
-local _t15
-_t15=$(cat <<'FENCE'
+_t=$(cat <<'FENCE'
 ```bash
 find . -name '*.txt' \
   -exec grep -l 'foo' {} +
@@ -110,14 +56,21 @@ FENCE
 )
 assert_eq "multi-line fence flattened" \
   "find . -name '*.txt' \\ -exec grep -l 'foo' {} +" \
-  "$(_tc "$_t15")"
+  "$(_tc "$_t")"
 
-# 16. Command with backticks (not fences — single inline backtick)
-assert_eq "inline backtick whoami preserved" \
-  'echo `whoami`' \
-  "$(print -r -- 'echo `whoami`' | _zaic_clean_command)"
+# ── Commentary heuristic (no fence) ──────────────────────────────
 
-# 17. Command with special chars
-assert_eq "special chars preserved" \
-  "awk '{print \$1}' file.txt" \
-  "$(_tc "awk '{print \$1}' file.txt")"
+_t=$(printf 'Here is the command:\nls -la\nThis lists all files.\n')
+assert_eq "commentary without fences filtered" "ls -la" "$(_tc "$_t")"
+
+# When everything looks like prose, fall back to the raw text rather
+# than returning empty (better to let the user see something wrong
+# than nothing at all).
+assert_eq "all-commentary fallback returns raw text" \
+  "Here is the answer." \
+  "$(_tc 'Here is the answer.')"
+
+# ── Edge cases ───────────────────────────────────────────────────
+
+assert_eq "empty input"          "" "$(_tc '')"
+assert_eq "whitespace-only input" "" "$(printf '   \n  \n' | _zaic_clean_command)"

@@ -103,6 +103,61 @@ _zaic_parse_response_openai() {
   print -r -- "$raw"
 }
 
+# ── OpenRouter ────────────────────────────────────────────────────
+# Uses /chat/completions (not /responses). Reasoning shape varies by
+# upstream model: gpt-oss requires effort, qwen3 thinking models only
+# honor enabled:false. We branch on the model slug.
+
+_zaic_build_request_openrouter() {
+  local sys_prompt="$1" user_query="$2"
+
+  _zaic_url='https://openrouter.ai/api/v1/chat/completions'
+  _zaic_headers=(
+    "Content-Type: application/json"
+    "Authorization: Bearer $ZSH_AI_COMMANDS_OPENROUTER_API_KEY"
+  )
+
+  local reasoning='{"effort":"low"}'
+  [[ "$ZSH_AI_COMMANDS_MODEL" == *qwen* ]] && reasoning='{"enabled":false}'
+
+  _zaic_body=$(
+    jq -n \
+      --arg model "$ZSH_AI_COMMANDS_MODEL" \
+      --arg sys   "$sys_prompt" \
+      --arg user  "$user_query" \
+      --argjson reasoning "$reasoning" \
+      '{
+        model: $model,
+        reasoning: $reasoning,
+        messages: [
+          { role: "system", content: $sys },
+          { role: "user",   content: $user }
+        ],
+        max_tokens: 512,
+        temperature: 0.2
+      }'
+  ) || return 1
+}
+
+_zaic_parse_response_openrouter() {
+  local resp_file="$1"
+
+  local raw
+  raw="$(jq -r '.choices[0].message.content // empty' "$resp_file" 2>/dev/null)"
+
+  if [[ -z "$raw" ]]; then
+    local err
+    err="$(jq -r '
+      (.error.message // .error // "unknown error (set ZSH_AI_COMMANDS_DEBUG=true)")
+      | tostring
+    ' "$resp_file" 2>/dev/null)"
+    echo "OpenRouter API error: $err" >&2
+    return 1
+  fi
+
+  print -r -- "$raw"
+}
+
 # ── Dispatchers ───────────────────────────────────────────────────
 
 _zaic_build_request() {

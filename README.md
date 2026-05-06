@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/fd6408ed-edf2-407a-812b-2e1fac25698c
 
 _Demo with gpt-4.1-mini's priority tier_
 
-Supports Gemini (default with free credits) and OpenAI-compatible APIs (OpenAI, Ollama, LMStudio, etc.).
+Supports Gemini (default with free credits), OpenAI-compatible APIs (OpenAI, Ollama, LMStudio, etc.), and OpenRouter (one key, hundreds of models including OSS).
 
 ## Requirements
 
@@ -36,6 +36,24 @@ export ZSH_AI_COMMANDS_GEMINI_API_KEY="your-key-here"
 export ZSH_AI_COMMANDS_OPENAI_API_KEY="your-key-here"
 ```
 
+### OpenRouter
+
+```sh
+export ZSH_AI_COMMANDS_OPENROUTER_API_KEY="your-key-here"
+# Optional — defaults to openai/gpt-oss-120b:nitro
+export ZSH_AI_COMMANDS_MODEL="qwen/qwen3.5-35b-a3b:nitro"
+```
+
+Or use the `or:` model-prefix shorthand to switch provider with a single env var:
+
+```sh
+export ZSH_AI_COMMANDS_MODEL=or:qwen/qwen3.5-35b-a3b:nitro
+```
+
+The prefix forces `ZSH_AI_COMMANDS_PROVIDER=openrouter` and is stripped before
+the request is sent. Useful when multiple keys are set and you want to flip
+providers without touching `ZSH_AI_COMMANDS_PROVIDER`.
+
 ### OpenAI-compatible APIs (llama.cpp, LMStudio, etc.)
 
 ```sh
@@ -49,15 +67,16 @@ export ZSH_AI_COMMANDS_MODEL="LiquidAI/LFM2.5-1.2B-Thinking"
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `ZSH_AI_COMMANDS_PROVIDER` | Auto-detected from which key is set | `gemini` or `openai` |
-| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-4.1-mini` | Model identifier |
+| `ZSH_AI_COMMANDS_PROVIDER` | Auto-detected from which key is set | `gemini`, `openai`, or `openrouter` |
+| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-4.1-mini` / `openai/gpt-oss-120b:nitro` | Model identifier (prefix with `or:` to force OpenRouter) |
 | `ZSH_AI_COMMANDS_GEMINI_API_KEY` | — | Gemini API key |
 | `ZSH_AI_COMMANDS_OPENAI_API_KEY` | — | OpenAI API key |
-| `ZSH_AI_COMMANDS_OPENAI_ENDPOINT` | `https://api.openai.com/v1/chat/completions` | Custom endpoint |
+| `ZSH_AI_COMMANDS_OPENAI_ENDPOINT` | `https://api.openai.com/v1/responses` | Custom endpoint (use `/v1/chat/completions` for OpenAI-compatible servers) |
+| `ZSH_AI_COMMANDS_OPENAI_PRIORITY` | `true` | OpenAI priority tier (lower latency, 2x cost) |
+| `ZSH_AI_COMMANDS_OPENROUTER_API_KEY` | — | OpenRouter API key |
 | `ZSH_AI_COMMANDS_HOTKEY` | `^o` (Ctrl+O) | Keybinding |
 | `ZSH_AI_COMMANDS_HISTORY` | `false` | Log queries to history |
 | `ZSH_AI_COMMANDS_DEBUG` | `false` | Keep response files for debugging |
-| `ZSH_AI_COMMANDS_LLM_NAME` | — | Legacy fallback for `_MODEL` |
 
 ## Usage
 
@@ -86,6 +105,8 @@ gpt-4.1-mini                    0.7s      27        $0.536
 gpt-5-mini                      3.3s     482        $3.717
 gpt-5.4-mini                    1.1s      28        $0.669
 gpt-5.4-nano                    0.9s      32        $0.190
+or:gpt-oss-120b:nitro           0.6s     109        $0.201
+or:qwen3.5-35b-a3b:nitro        1.0s      25        $0.081
 
 ```
 

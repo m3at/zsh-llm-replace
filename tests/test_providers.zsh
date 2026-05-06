@@ -56,3 +56,23 @@ assert_eq "openai: error returns empty" "" "$_oerr"
 local _oerr_msg
 _oerr_msg="$(_zaic_parse_response_openai "$_fixtures_dir/openai_error.json" 2>&1 1>/dev/null)"
 assert_not_empty "openai: error message on stderr" "$_oerr_msg"
+
+# ── OpenRouter fixtures ──────────────────────────────────────────
+
+assert_eq "openrouter: clean response" \
+  "ls -la" \
+  "$(_zaic_parse_response_openrouter "$_fixtures_dir/openrouter_clean.json")"
+
+assert_eq "openrouter: fenced response has fence markers" \
+  '```bash
+ls -la
+```' \
+  "$(_zaic_parse_response_openrouter "$_fixtures_dir/openrouter_fenced.json")"
+
+local _orerr
+_orerr="$(_zaic_parse_response_openrouter "$_fixtures_dir/openrouter_error.json" 2>/dev/null)"
+assert_eq "openrouter: error returns empty" "" "$_orerr"
+
+local _orerr_msg
+_orerr_msg="$(_zaic_parse_response_openrouter "$_fixtures_dir/openrouter_error.json" 2>&1 1>/dev/null)"
+assert_not_empty "openrouter: error message on stderr" "$_orerr_msg"

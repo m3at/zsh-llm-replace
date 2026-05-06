@@ -46,6 +46,7 @@ check_keys() {
   local fail=0
   [[ -z "${ZSH_AI_COMMANDS_GEMINI_API_KEY:-}" ]] && { print -P "%F{red}ZSH_AI_COMMANDS_GEMINI_API_KEY not set%f" >&2; fail=1; }
   [[ -z "${ZSH_AI_COMMANDS_OPENAI_API_KEY:-}" ]] && { print -P "%F{red}ZSH_AI_COMMANDS_OPENAI_API_KEY not set%f" >&2; fail=1; }
+  [[ -z "${ZSH_AI_COMMANDS_OPENROUTER_API_KEY:-}" ]] && { print -P "%F{red}ZSH_AI_COMMANDS_OPENROUTER_API_KEY not set%f" >&2; fail=1; }
   (( fail )) && exit 1
 }
 
@@ -62,6 +63,27 @@ call_gemini() {
   curl -s -o "$out" -w '%{time_total}' \
     -H 'Content-Type: application/json' \
     "$url" -d "$body"
+}
+
+call_openrouter() {
+  local model=$1 query=$2 out=$3
+  local reasoning='{"effort":"low"}'
+  [[ $model == *qwen* ]] && reasoning='{"enabled":false}'
+  local body
+  body=$(jq -n --arg m "$model" --arg sys "$SYS_PROMPT" --arg user "$query" --argjson r "$reasoning" '{
+    model: $m,
+    reasoning: $r,
+    messages: [
+      { role: "system", content: $sys },
+      { role: "user",   content: $user }
+    ],
+    max_tokens: 512,
+    temperature: 0.2
+  }') || return 1
+  curl -s -o "$out" -w '%{time_total}' \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer ${ZSH_AI_COMMANDS_OPENROUTER_API_KEY}" \
+    https://openrouter.ai/api/v1/chat/completions -d "$body"
 }
 
 call_openai() {
@@ -92,6 +114,10 @@ tokens_gemini() {
 tokens_openai() {
   jq -r '[(.usage.prompt_tokens // 0), (.usage.completion_tokens // 0)] | @tsv' "$1" 2>/dev/null || printf '0\t0'
 }
+# OpenRouter reports cost directly in USD on .usage.cost
+tokens_openrouter() {
+  jq -r '[(.usage.prompt_tokens // 0), (.usage.completion_tokens // 0), (.usage.cost // 0)] | @tsv' "$1" 2>/dev/null || printf '0\t0\t0'
+}
 
 # ── Results accumulators ─────────────────────────────────────────
 typeset -A R_TIME R_TOK R_COST
@@ -99,27 +125,29 @@ LABELS=()
 
 # ── Benchmark one model ──────────────────────────────────────────
 bench() {
+  # Locals declared up front: re-running `local foo` inside a loop in zsh
+  # echoes the existing value of `foo` to stdout, polluting the table.
   local label=$1 provider=$2 model=$3
-  LABELS+=("$label")
   local n=${#PROMPTS[@]}
-  local tmp
+  local tmp q t err in_tok out_tok cost i
+  local sum_t=0 sum_out=0 sum_cost=0 errors=0
+  local counted
+
+  LABELS+=("$label")
   tmp=$(mktemp /tmp/bench.XXXXXX.json) || return 1
-  local sum_t=0 sum_in=0 sum_out=0 sum_cost=0 errors=0
 
   printf '\n\e[1m── %s ──\e[0m\n' "$label"
 
   for i in {1..$n}; do
-    local q=${PROMPTS[$i]}
+    q=${PROMPTS[$i]}
     printf '  [%d/%d] %-44s ' "$i" "$n" "$q"
 
-    local t
-    if [[ $provider == gemini ]]; then
-      t=$(call_gemini "$model" "$q" "$tmp")
-    else
-      t=$(call_openai "$model" "$q" "$tmp")
-    fi
+    case $provider in
+      gemini)     t=$(call_gemini     "$model" "$q" "$tmp") ;;
+      openai)     t=$(call_openai     "$model" "$q" "$tmp") ;;
+      openrouter) t=$(call_openrouter "$model" "$q" "$tmp") ;;
+    esac
 
-    local err
     err=$(jq -r '.error.message // empty' "$tmp" 2>/dev/null)
     if [[ -n $err ]]; then
       printf '\e[31mERROR: %s\e[0m\n' "$err"
@@ -127,32 +155,35 @@ bench() {
       continue
     fi
 
-    local in_tok out_tok
-    if [[ $provider == gemini ]]; then
-      read in_tok out_tok <<< "$(tokens_gemini "$tmp")"
-    else
-      read in_tok out_tok <<< "$(tokens_openai "$tmp")"
-    fi
-
-    local cost
-    cost=$(awk "BEGIN { printf \"%.8f\", ($in_tok * ${COST_IN[$model]} + $out_tok * ${COST_OUT[$model]}) / 1000000 }")
-    [[ $provider == openai && $OPENAI_PRIORITY == true ]] && \
-      cost=$(awk "BEGIN { printf \"%.8f\", $cost * 2 }")
+    case $provider in
+      gemini)
+        read in_tok out_tok <<< "$(tokens_gemini "$tmp")"
+        cost=$(awk "BEGIN { printf \"%.8f\", ($in_tok * ${COST_IN[$model]} + $out_tok * ${COST_OUT[$model]}) / 1000000 }")
+        ;;
+      openai)
+        read in_tok out_tok <<< "$(tokens_openai "$tmp")"
+        cost=$(awk "BEGIN { printf \"%.8f\", ($in_tok * ${COST_IN[$model]} + $out_tok * ${COST_OUT[$model]}) / 1000000 }")
+        [[ $OPENAI_PRIORITY == true ]] && cost=$(awk "BEGIN { printf \"%.8f\", $cost * 2 }")
+        ;;
+      openrouter)
+        read in_tok out_tok cost <<< "$(tokens_openrouter "$tmp")"
+        ;;
+    esac
 
     printf '%5.2fs  %4d tok  $%.6f\n' "$t" "$out_tok" "$cost"
 
-    sum_t=$(awk   "BEGIN { printf \"%.4f\", $sum_t   + $t }")
-    sum_out=$(awk "BEGIN { printf \"%.0f\", $sum_out + $out_tok }")
+    sum_t=$(awk    "BEGIN { printf \"%.4f\", $sum_t    + $t }")
+    sum_out=$(awk  "BEGIN { printf \"%.0f\", $sum_out  + $out_tok }")
     sum_cost=$(awk "BEGIN { printf \"%.8f\", $sum_cost + $cost }")
   done
 
   rm -f "$tmp"
 
-  local counted=$(( n - errors ))
+  counted=$(( n - errors ))
   if (( counted > 0 )); then
-    R_TIME[$label]=$(awk  "BEGIN { printf \"%.1f\", $sum_t    / $counted }")
-    R_TOK[$label]=$(awk   "BEGIN { printf \"%.0f\", $sum_out  / $counted }")
-    R_COST[$label]=$(awk  "BEGIN { printf \"%.6f\", $sum_cost / $counted }")
+    R_TIME[$label]=$(awk "BEGIN { printf \"%.1f\", $sum_t    / $counted }")
+    R_TOK[$label]=$(awk  "BEGIN { printf \"%.0f\", $sum_out  / $counted }")
+    R_COST[$label]=$(awk "BEGIN { printf \"%.6f\", $sum_cost / $counted }")
   else
     R_TIME[$label]="-.-"
     R_TOK[$label]="-"
@@ -187,6 +218,8 @@ bench "gpt-4.1-mini"            openai  gpt-4.1-mini
 bench "gpt-5-mini"              openai  gpt-5-mini
 bench "gpt-5.4-mini"            openai  gpt-5.4-mini
 bench "gpt-5.4-nano"            openai  gpt-5.4-nano
+bench "or:gpt-oss-120b:nitro"   openrouter  openai/gpt-oss-120b:nitro
+bench "or:qwen3.5-35b-a3b:nitro" openrouter qwen/qwen3.5-35b-a3b:nitro
 
 # ── Summary table ────────────────────────────────────────────────
 printf '\n\e[1m'

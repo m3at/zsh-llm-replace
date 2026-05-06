@@ -1,14 +1,21 @@
 {
-  "id": "chatcmpl-test456",
-  "object": "chat.completion",
-  "choices": [
+  "id": "resp_test456",
+  "object": "response",
+  "output": [
     {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "```bash\nls -la\n```"
-      },
-      "finish_reason": "stop"
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "text": "```bash\nls -la\n```"
+        }
+      ]
     }
-  ]
+  ],
+  "usage": { "input_tokens": 100, "output_tokens": 12, "total_tokens": 112 }
 }

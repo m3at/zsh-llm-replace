@@ -36,7 +36,7 @@ assert_not_empty "gemini: error message on stderr" "$_gerr_msg"
 # ── OpenAI fixtures ──────────────────────────────────────────────
 
 # Request service tier
-typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4.1-mini'
+typeset -g ZSH_AI_COMMANDS_MODEL='gpt-6-luna'
 typeset -g ZSH_AI_COMMANDS_OPENAI_ENDPOINT='https://api.openai.com/v1/responses'
 typeset -g ZSH_AI_COMMANDS_OPENAI_API_KEY='test-key'
 typeset -g ZSH_AI_COMMANDS_OPENAI_FAST=true

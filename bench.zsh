@@ -6,8 +6,8 @@ set -uo pipefail
 
 # ── Pricing (USD per 1M tokens) ─────────────────────────────────
 typeset -A COST_IN COST_OUT
-COST_IN=(  gemini-3-flash-preview 0.50  gemini-2.5-flash 0.30  gpt-4o 4.25   gpt-4.1-mini 0.70  gpt-5.4-mini 0.75  gpt-5.6-sol 2.50  gpt-5.6-luna 0.10 )
-COST_OUT=( gemini-3-flash-preview 3.00  gemini-2.5-flash 2.50  gpt-4o 17.00  gpt-4.1-mini 2.80  gpt-5.4-mini 4.50  gpt-5.6-sol 15.00 gpt-5.6-luna 0.60 )
+COST_IN=(  gemini-3-flash-preview 0.50  gemini-2.5-flash 0.30  gpt-4o 4.25   gpt-4.1-mini 0.70  gpt-5.4-mini 0.75  gpt-5.6-sol 2.50  gpt-5.6-luna 0.10  gpt-6.1-sol 2.00  gpt-6-luna 0.10 )
+COST_OUT=( gemini-3-flash-preview 3.00  gemini-2.5-flash 2.50  gpt-4o 17.00  gpt-4.1-mini 2.80  gpt-5.4-mini 4.50  gpt-5.6-sol 15.00 gpt-5.6-luna 0.60  gpt-6.1-sol 10.00 gpt-6-luna 0.50 )
 
 OPENAI_FAST="${ZSH_AI_COMMANDS_OPENAI_FAST:-${ZSH_AI_COMMANDS_OPENAI_PRIORITY:-true}}"
 
@@ -267,6 +267,9 @@ bench "gpt-5.4-mini"            openai  gpt-5.4-mini  none
 bench "gpt-5.6-sol [none]"       openai  gpt-5.6-sol   none
 bench "gpt-5.6-luna [none]"      openai  gpt-5.6-luna  none
 bench "gpt-5.6-luna [low]"       openai  gpt-5.6-luna  low
+bench "gpt-6.1-sol [low]"        openai  gpt-6.1-sol   low
+bench "gpt-6-luna [none]"        openai  gpt-6-luna    none
+bench "gpt-6-luna [low]"         openai  gpt-6-luna    low
 bench "or:gpt-oss-120b:nitro"   openrouter  openai/gpt-oss-120b:nitro
 bench "or:qwen3.5-35b-a3b:nitro" openrouter qwen/qwen3.5-35b-a3b:nitro
 

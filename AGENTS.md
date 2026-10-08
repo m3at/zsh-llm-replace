@@ -16,7 +16,7 @@ Zsh plugin that turns a natural-language prompt typed at the command line into a
 - Provider contract: `_zaic_build_request_<provider>` sets `_zaic_url`, `_zaic_headers` (array), `_zaic_body` in the caller's scope. `_zaic_parse_response_<provider>` reads a response file path and prints raw text to stdout, returns 1 on error.
 - All env vars use the `ZSH_AI_COMMANDS_` prefix (note: prefix differs from the repo name).
 - OpenAI calls use the `/v1/responses` endpoint, not `/chat/completions`. Parse typed `message`/`output_text` items rather than fixed array positions: `none` responses omit the leading reasoning item.
-- Gemini default is `gemini-3-flash-preview`; OpenAI default is `gpt-4.1-mini`; OpenRouter default is `openai/gpt-oss-120b:nitro`.
+- Gemini default is `gemini-3-flash-preview`; OpenAI default is `gpt-6-luna`; OpenRouter default is `openai/gpt-oss-120b:nitro`.
 - Fast mode (`service_tier: fast`) is on by default for OpenAI (lower latency, 2x cost). Toggle with `ZSH_AI_COMMANDS_OPENAI_FAST=false`; the former `ZSH_AI_COMMANDS_OPENAI_PRIORITY` name remains a compatibility alias.
 - OpenAI reasoning effort is hardcoded to `none` in providers.zsh; it is intentionally not exposed as another user-facing knob. OpenRouter uses `low`, except qwen models (slug containing `qwen`) get `reasoning:{enabled:false}` because they ignore `effort` and emit thousands of reasoning tokens otherwise. gpt-oss requires reasoning enabled, so we can't blanket-disable.
 - Model-prefix shorthand: `ZSH_AI_COMMANDS_MODEL=or:<slug>` forces `ZSH_AI_COMMANDS_PROVIDER=openrouter` and strips the prefix before the request. Resolved at the top of the config block in zsh-llm-replace.zsh.

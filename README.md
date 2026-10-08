@@ -32,6 +32,8 @@ export ZSH_AI_COMMANDS_GEMINI_API_KEY="your-key-here"
 
 ### OpenAI
 
+Defaults to `gpt-6-luna` with `none` reasoning and Fast mode.
+
 ```sh
 export ZSH_AI_COMMANDS_OPENAI_API_KEY="your-key-here"
 ```
@@ -68,7 +70,7 @@ export ZSH_AI_COMMANDS_MODEL="LiquidAI/LFM2.5-1.2B-Thinking"
 | Variable | Default | Purpose |
 |---|---|---|
 | `ZSH_AI_COMMANDS_PROVIDER` | Auto-detected from which key is set | `gemini`, `openai`, or `openrouter` |
-| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-4.1-mini` / `openai/gpt-oss-120b:nitro` | Model identifier (prefix with `or:` to force OpenRouter) |
+| `ZSH_AI_COMMANDS_MODEL` | `gemini-3-flash-preview` / `gpt-6-luna` / `openai/gpt-oss-120b:nitro` | Model identifier (prefix with `or:` to force OpenRouter) |
 | `ZSH_AI_COMMANDS_GEMINI_API_KEY` | — | Gemini API key |
 | `ZSH_AI_COMMANDS_OPENAI_API_KEY` | — | OpenAI API key |
 | `ZSH_AI_COMMANDS_OPENAI_ENDPOINT` | `https://api.openai.com/v1/responses` | Custom endpoint (use `/v1/chat/completions` for OpenAI-compatible servers) |
@@ -91,11 +93,14 @@ export ZSH_AI_COMMANDS_MODEL="LiquidAI/LFM2.5-1.2B-Thinking"
 # unit + fixture tests
 zsh tests/run.zsh          
 
-# mini cost/latency bench mark
+# latency/cost benchmark (live API calls)
 zsh bench.zsh
 ```
 
-Test results as of 2026/08/16. OpenAI rows use the Responses API and 2x-cost Fast mode. GPT-5.6 reasoning effort is shown in each model label; the plugin itself fixes OpenAI reasoning to `none` without exposing another setting. Quality is the number of generated commands (out of five) that are valid one-line zsh and pass prompt-specific semantic checks.
+Each benchmark runs five prompts per model with a 512-token output limit. OpenAI rows use the Responses API and 2x-cost Fast mode. Latency and output tokens are per-request averages; output tokens include reasoning. Cost x1000 is the estimated average cost per request multiplied by 1,000. Quality counts commands that are valid one-line zsh and pass prompt-specific sanity checks. Commands are not executed, and these checks do not establish full correctness.
+
+GPT-6 rows were measured on 2026-10-08; other rows on 2026-08-16. Each run used one request per prompt.
+
 ```
 Model                          Latency  Tokens    Cost x1000  Quality
 ────────────────────────────  ────────  ──────  ────────────  ───────
@@ -107,10 +112,17 @@ gpt-5.4-mini                      0.9s      31        $0.691      5/5
 gpt-5.6-sol [none]                1.3s      25        $2.134      5/5
 gpt-5.6-luna [none]               1.1s      28        $0.088      5/5
 gpt-5.6-luna [low]                1.9s     144        $0.228      5/5
+gpt-6.1-sol [low]                3.76s      88        $2.870      5/5
+gpt-6-luna [none]                2.02s      26        $0.082      5/5
+gpt-6-luna [low]                 3.21s     137        $0.192      5/5
 or:gpt-oss-120b:nitro             0.8s     127        $0.214      5/5
 or:qwen3.5-35b-a3b:nitro          0.9s      22        $0.066      5/5
 
 ```
+
+GPT-6 costs use the published [Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) and [Luna](https://developers.openai.com/api/docs/models/gpt-6-luna) token rates. Luna with `none` matched `TODO` anywhere in Python files, while `low` restricted matches to comments; both passed the heuristic check.
+
+The plugin fixes OpenAI reasoning to `none` without exposing another setting. GPT-6.1 Sol requires at least `low`, so its row is a benchmark-only comparison.
 
 ---
 

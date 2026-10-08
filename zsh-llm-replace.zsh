@@ -90,7 +90,7 @@ esac
 if (( ! ${+ZSH_AI_COMMANDS_MODEL} )); then
   case "$ZSH_AI_COMMANDS_PROVIDER" in
     gemini)     typeset -g ZSH_AI_COMMANDS_MODEL='gemini-3-flash-preview' ;;
-    openai)     typeset -g ZSH_AI_COMMANDS_MODEL='gpt-4.1-mini' ;;
+    openai)     typeset -g ZSH_AI_COMMANDS_MODEL='gpt-6-luna' ;;
     openrouter) typeset -g ZSH_AI_COMMANDS_MODEL='openai/gpt-oss-120b:nitro' ;;
   esac
 fi

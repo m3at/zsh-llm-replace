@@ -19,7 +19,7 @@ Supports Gemini (default with free credits), OpenAI-compatible APIs (OpenAI, Oll
 
 Using [zplug](https://github.com/zplug/zplug):
 ```sh
-zplug "m3at/zsh-llm-replace"
+zplug "m3at/zsh-llm-replace", at:main
 ```
 
 ## Configuration
